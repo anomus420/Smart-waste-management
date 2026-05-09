@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🌿 Smart Waste Management System
 
 A full-stack MERN application enabling citizens to report waste complaints, request e-waste pickups, and find nearby waste centres — with a full admin dashboard.
@@ -51,3 +52,7 @@ Visit: http://localhost:5173
 - [API Documentation](docs/API_DOCUMENTATION.md)
 - [Database Schema](docs/DATABASE_SCHEMA.md)
 - [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
+=======
+# Smart-waste-management
+A smart city waste management and complaint tracking system 
+>>>>>>> e6ccccdeca101d9c4113317438c2542829e9800d
