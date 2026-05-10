@@ -14,20 +14,20 @@ const Home = () => {
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
       {/* Hero */}
       {/* <section className="bg-linear-to-br from-green-700 via-green-600 to-emerald-500 text-white"> */}
-      <section className="bg-linear-to-br from-[#14532d] via-[#22c55e] to-[#14b8a6]">
+      <section className="bg-linear-to-br from-[#0fa049] via-[#22c55e] to-[#14b87f]">
         <div className="max-w-7xl mx-auto px-4 py-24 text-center">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-medium mb-6">
             <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse text-white" />
             Building Cleaner Cities
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-[#172120] text-shadow-black">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white text-shadow-black">
             Smart Waste<br />Management
           </h1>
           <p className="text-xl text-green-100 max-w-2xl mx-auto mb-10">
             Report waste issues, schedule e-waste pickups, and contribute to a cleaner, greener community.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/file-complaint" className="px-8 py-4 rounded-xl bg-white text-green-700 font-bold text-sm hover:bg-green-50 transition-all shadow-lg hover:shadow-xl">
+            <Link to="/file-complaint" className="px-8 py-4 rounded-xl bg-white text-red-400 font-bold text-sm hover:bg-green-50 transition-all shadow-lg hover:shadow-xl">
               File a Complaint
             </Link>
             <Link to="/ewaste" className="px-8 py-4 rounded-xl bg-white/20 backdrop-blur-sm text-white font-bold text-sm hover:bg-white/30 transition-all border border-white/30">

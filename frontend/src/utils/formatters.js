@@ -63,7 +63,11 @@ export const getPriorityColor = (priority) => {
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null
   if (imagePath.startsWith('http')) return imagePath
-  // imagePath like "complaints/filename.jpg"
-  const filename = imagePath.split('/').pop()
-  return `http://localhost:5000/uploads/complaints/${filename}`
+  
+  // Get base URL from environment or fallback to localhost
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+  // Strip '/api' from the end if it exists to get the root backend URL
+  const baseUrl = apiUrl.replace(/\/api\/?$/, '')
+  
+  return `${baseUrl}/uploads/${imagePath}`
 }

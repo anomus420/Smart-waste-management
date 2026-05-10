@@ -23,8 +23,9 @@ const getProfile = async (req, res, next) => {
 // ─── PUT /api/users/profile – Update name, phone, address, avatar ─────────────
 const updateProfile = async (req, res, next) => {
   try {
-    const { name, phone, address } = req.body;
+    const { name, phone, address, removeAvatar } = req.body;
     const update = {};
+    const unset = {};
     if (name)    update.name    = name.trim();
     if (phone)   update.phone   = phone.trim();
     if (address) update.address = address.trim();
@@ -33,11 +34,16 @@ const updateProfile = async (req, res, next) => {
     if (req.file) {
       const path = require('path');
       update.avatar = `complaints/${path.basename(req.file.path)}`;
+    } else if (removeAvatar === 'true') {
+      unset.avatar = 1;
     }
  
+    const updateOp = Object.keys(update).length > 0 ? { $set: update } : {};
+    if (Object.keys(unset).length > 0) updateOp.$unset = unset;
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { $set: update },
+      updateOp,
       { new: true, runValidators: true }
     ).select('-password -googleId');
  

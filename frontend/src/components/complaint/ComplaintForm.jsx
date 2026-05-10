@@ -31,6 +31,26 @@ const ComplaintForm = ({ onSuccess }) => {
     }
   }
 
+  const handleAutoFetch = () => {
+    if (!navigator.geolocation) {
+      setAlert({ type: 'error', message: 'Geolocation is not supported by your browser' })
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setForm(prev => ({
+          ...prev,
+          locationLat: position.coords.latitude.toFixed(6),
+          locationLng: position.coords.longitude.toFixed(6)
+        }))
+        setAlert(null)
+      },
+      () => {
+        setAlert({ type: 'error', message: 'Unable to retrieve your location' })
+      }
+    )
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
@@ -114,18 +134,28 @@ const ComplaintForm = ({ onSuccess }) => {
         {errors.locationAddress && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.locationAddress}</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Latitude <span className="text-gray-400 dark:text-gray-500">(optional)</span></label>
-          <input type="number" step="any" value={form.locationLat} onChange={e => setForm({ ...form, locationLat: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30"
-            placeholder="28.6139" />
+      <div>
+        <div className="flex justify-between items-center mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Coordinates <span className="text-gray-400 dark:text-gray-500">(optional)</span></label>
+          <button 
+            type="button" 
+            onClick={handleAutoFetch}
+            className="text-xs text-green-600 dark:text-green-400 hover:underline flex items-center gap-1"
+          >
+            <span>📍</span> Auto-fetch
+          </button>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Longitude <span className="text-gray-400 dark:text-gray-500">(optional)</span></label>
-          <input type="number" step="any" value={form.locationLng} onChange={e => setForm({ ...form, locationLng: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30"
-            placeholder="77.2090" />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <input type="number" step="any" value={form.locationLat} onChange={e => setForm({ ...form, locationLat: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30"
+              placeholder="Latitude" />
+          </div>
+          <div>
+            <input type="number" step="any" value={form.locationLng} onChange={e => setForm({ ...form, locationLng: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30"
+              placeholder="Longitude" />
+          </div>
         </div>
       </div>
 

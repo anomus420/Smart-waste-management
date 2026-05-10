@@ -12,6 +12,11 @@ const TrackComplaint = () => {
   const [selected, setSelected] = useState(null)
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [updateForm, setUpdateForm] = useState({ lat: '', lng: '' })
+  const [updateFile, setUpdateFile] = useState(null)
+  const [updateLoading, setUpdateLoading] = useState(false)
+  const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' })
   const selectedId = searchParams.get('id')
 
   const fetchDetail = async () => {
@@ -29,6 +34,52 @@ const TrackComplaint = () => {
   const handleSelect = (c) => {
     setSearchParams({ id: c._id })
     setSelected(c)
+    setIsUpdating(false)
+    setUpdateMsg({ type: '', text: '' })
+  }
+
+  const handleAutoFetch = () => {
+    if (!navigator.geolocation) {
+      setUpdateMsg({ type: 'error', text: 'Geolocation is not supported by your browser' })
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUpdateForm({
+          lat: position.coords.latitude.toFixed(6),
+          lng: position.coords.longitude.toFixed(6)
+        })
+        setUpdateMsg({ type: '', text: '' })
+      },
+      () => {
+        setUpdateMsg({ type: 'error', text: 'Unable to retrieve your location' })
+      }
+    )
+  }
+
+  const handleUpdateSubmit = async () => {
+    if (!updateForm.lat && !updateForm.lng && !updateFile) {
+      setUpdateMsg({ type: 'error', text: 'Please provide coordinates or an image to update.' })
+      return
+    }
+
+    setUpdateLoading(true)
+    setUpdateMsg({ type: '', text: '' })
+    try {
+      const fd = new FormData()
+      if (updateForm.lat) fd.append('locationLat', updateForm.lat)
+      if (updateForm.lng) fd.append('locationLng', updateForm.lng)
+      if (updateFile) fd.append('image', updateFile)
+
+      await complaintService.updateComplaint(detail._id, fd)
+      setIsUpdating(false)
+      setUpdateFile(null)
+      fetchDetail() // refresh the data
+    } catch (err) {
+      setUpdateMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update complaint' })
+    } finally {
+      setUpdateLoading(false)
+    }
   }
 
   return (
@@ -73,6 +124,79 @@ const TrackComplaint = () => {
                   </p>
                 )}
                 <hr className="border-gray-100 dark:border-gray-700" />
+
+                {detail.status === 'pending' && (
+                  <div className="pt-2">
+                    {!isUpdating ? (
+                      <button 
+                        onClick={() => setIsUpdating(true)}
+                        className="w-full py-2 bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-900/30 dark:hover:bg-green-900/50 dark:text-green-400 rounded-lg text-sm font-medium transition-colors border border-green-200 dark:border-green-800"
+                      >
+                        Update Additional Info
+                      </button>
+                    ) : (
+                      <div className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-gray-50 dark:bg-gray-800/50">
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Update Complaint Info</h3>
+                          <button onClick={() => { setIsUpdating(false); setUpdateMsg({ type: '', text: '' }) }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            ✕
+                          </button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex justify-between items-center mb-1">
+                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Location Coordinates</label>
+                              <button 
+                                type="button" 
+                                onClick={handleAutoFetch}
+                                className="text-xs text-green-600 dark:text-green-400 hover:underline flex items-center gap-1"
+                              >
+                                <span>📍</span> Auto-fetch
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input 
+                                type="number" step="any" placeholder="Latitude" 
+                                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                                value={updateForm.lat} onChange={(e) => setUpdateForm({ ...updateForm, lat: e.target.value })}
+                              />
+                              <input 
+                                type="number" step="any" placeholder="Longitude" 
+                                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                                value={updateForm.lng} onChange={(e) => setUpdateForm({ ...updateForm, lng: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Photograph</label>
+                            <input 
+                              type="file" accept="image/*"
+                              className="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-green-900/30 dark:file:text-green-400"
+                              onChange={(e) => setUpdateFile(e.target.files[0])}
+                            />
+                          </div>
+
+                          {updateMsg.text && (
+                            <div className={`p-2 text-xs rounded-lg ${updateMsg.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                              {updateMsg.text}
+                            </div>
+                          )}
+
+                          <button 
+                            onClick={handleUpdateSubmit}
+                            disabled={updateLoading}
+                            className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            {updateLoading ? 'Updating...' : 'Submit Update'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <ComplaintTracker complaint={detail} />
               </div>
             ) : (

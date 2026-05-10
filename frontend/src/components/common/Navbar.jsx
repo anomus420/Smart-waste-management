@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 import useNotification from '../../hooks/useNotification'
 import { useTheme } from '../../context/ThemeContext'
+import { getImageUrl } from '../../utils/formatters'
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth()
@@ -101,9 +102,17 @@ const Navbar = () => {
                 <div className="relative">
                   <button onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <div className="w-7 h-7 rounded-full bg-green-600 text-white text-xs font-bold flex items-center justify-center uppercase">
-                      {user?.name?.[0] || 'U'}
-                    </div>
+                    {user?.avatar ? (
+                      <img 
+                        src={getImageUrl(user.avatar)} 
+                        alt={user?.name || 'User'} 
+                        className="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-green-600 text-white text-xs font-bold flex items-center justify-center uppercase">
+                        {user?.name?.[0] || 'U'}
+                      </div>
+                    )}
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">{user?.name?.split(' ')[0]}</span>
                     <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

@@ -20,6 +20,7 @@ function ProfileInner() {
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', bio: user?.bio || '' });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('');
+  const [removeAvatar, setRemoveAvatar] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState({ type: '', text: '' });
   const avatarRef = useRef();
@@ -55,6 +56,7 @@ function ProfileInner() {
     if (file) {
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
+      setRemoveAvatar(false);
     }
   };
 
@@ -67,12 +69,14 @@ function ProfileInner() {
       if (form.phone) fd.append('phone', form.phone);
       if (form.bio) fd.append('bio', form.bio);
       if (avatarFile) fd.append('avatar', avatarFile);
+      if (removeAvatar) fd.append('removeAvatar', 'true');
       const { data } = await api.put('/users/profile', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       updateUser(data.user);
       setSaveMsg({ type: 'success', text: 'Profile updated successfully.' });
       setEditing(false);
       setAvatarFile(null);
       setAvatarPreview('');
+      setRemoveAvatar(false);
     } catch (e) {
       setSaveMsg({ type: 'error', text: e.response?.data?.message || 'Failed to update profile.' });
     } finally {
@@ -85,6 +89,7 @@ function ProfileInner() {
     setForm({ name: user?.name || '', phone: user?.phone || '', bio: user?.bio || '' });
     setAvatarFile(null);
     setAvatarPreview('');
+    setRemoveAvatar(false);
     setSaveMsg({ type: '', text: '' });
   };
 
@@ -113,7 +118,7 @@ function ProfileInner() {
     }
   };
 
-  const avatarSrc = avatarPreview || (user?.avatar ? getImageUrl(user.avatar) : null);
+  const avatarSrc = avatarPreview || (!removeAvatar && user?.avatar ? getImageUrl(user.avatar) : null);
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
   const statItems = [
@@ -148,6 +153,19 @@ function ProfileInner() {
                 >
                   ✎
                 </button>
+                {avatarSrc && (
+                  <button
+                    onClick={() => {
+                      setAvatarFile(null);
+                      setAvatarPreview('');
+                      setRemoveAvatar(true);
+                    }}
+                    className="absolute -top-1 -right-1 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm shadow transition-colors"
+                    title="Remove avatar"
+                  >
+                    ×
+                  </button>
+                )}
                 <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               </>
             )}
