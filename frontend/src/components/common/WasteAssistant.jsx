@@ -46,9 +46,6 @@ export default function WasteAssistant() {
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
 
-  // Don't show to unauthenticated users
-  if (!isAuthenticated) return null;
-
   const scrollToBottom = () =>
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
 
@@ -103,6 +100,9 @@ export default function WasteAssistant() {
     setMessages([WELCOME]);
     setInput('');
   };
+
+  // Don't show to unauthenticated users
+  if (!isAuthenticated) return null;
 
   return (
     <>

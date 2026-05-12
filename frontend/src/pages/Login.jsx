@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import LoginForm from '../components/auth/LoginForm'
 import GoogleLogin from '../components/auth/GoogleLogin'
 import useAuth from '../hooks/useAuth'
@@ -7,7 +7,10 @@ import useAuth from '../hooks/useAuth'
 const Login = () => {
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
-  useEffect(() => { if (isAuthenticated) navigate('/') }, [isAuthenticated])
+  const location = useLocation()
+  const from = location.state?.from?.pathname || '/'
+  
+  useEffect(() => { if (isAuthenticated) navigate(from, { replace: true }) }, [isAuthenticated, navigate, from])
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">

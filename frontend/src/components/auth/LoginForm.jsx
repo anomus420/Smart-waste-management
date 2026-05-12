@@ -7,8 +7,6 @@ import { validateEmail, validatePassword } from '../../utils/validators'
 const LoginForm = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const from = location.state?.from?.pathname || '/'
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
@@ -31,9 +29,15 @@ const LoginForm = () => {
     try {
       setLoading(true)
       await login(form.email, form.password)
-      navigate(from, { replace: true })
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Login failed. Please try again.' })
+      if (err.response?.data?.errors) {
+        const backendErrors = {}
+        err.response.data.errors.forEach(e => { backendErrors[e.field] = e.message })
+        setErrors(backendErrors)
+        setAlert({ type: 'error', message: err.response?.data?.message || 'Please fix the errors below.' })
+      } else {
+        setAlert({ type: 'error', message: err.response?.data?.message || 'Login failed. Please try again.' })
+      }
     } finally {
       setLoading(false)
     }

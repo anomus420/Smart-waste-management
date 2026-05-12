@@ -6,7 +6,6 @@ import { validateEmail, validatePassword, validateRequired } from '../../utils/v
 
 const SignupForm = () => {
   const { signup } = useAuth()
-  const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -31,9 +30,15 @@ const SignupForm = () => {
     try {
       setLoading(true)
       await signup(form.name, form.email, form.password)
-      navigate('/')
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Signup failed. Please try again.' })
+      if (err.response?.data?.errors) {
+        const backendErrors = {}
+        err.response.data.errors.forEach(e => { backendErrors[e.field] = e.message })
+        setErrors(backendErrors)
+        setAlert({ type: 'error', message: err.response?.data?.message || 'Please fix the errors below.' })
+      } else {
+        setAlert({ type: 'error', message: err.response?.data?.message || 'Signup failed. Please try again.' })
+      }
     } finally {
       setLoading(false)
     }
