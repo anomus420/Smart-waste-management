@@ -15,12 +15,24 @@ const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5000',
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_PROD_URL
+].filter(Boolean).map(url => url.trim().replace(/\/$/, ''));
+
 const io = new Server(server, {
   cors: {
-    origin: [
-      process.env.FRONTEND_URL || 'http://localhost:5173',
-      process.env.FRONTEND_PROD_URL
-    ],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      const sanitizedOrigin = origin.trim().replace(/\/$/, '');
+      if (allowedOrigins.includes(sanitizedOrigin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },

@@ -39,12 +39,23 @@ app.use(helmet({
 //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 //   allowedHeaders: ['Content-Type', 'Authorization'],
 // }));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5000',
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_PROD_URL
+].filter(Boolean).map(url => url.trim().replace(/\/$/, ''));
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    process.env.FRONTEND_PROD_URL 
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    const sanitizedOrigin = origin.trim().replace(/\/$/, '');
+    if (allowedOrigins.includes(sanitizedOrigin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true
 }));
 // ─── Body Parsers ──────────────────────────────────────────────────────────────

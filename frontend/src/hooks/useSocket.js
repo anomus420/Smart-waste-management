@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+let baseEnv = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Safely remove /api and trailing slashes for the Socket connection
+const SOCKET_URL = baseEnv.replace(/\/api\/?$/, '').replace(/\/$/, '');
 
 let socketInstance = null; // singleton — one connection for the whole app
 

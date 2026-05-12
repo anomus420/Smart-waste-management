@@ -1,9 +1,16 @@
 import axios from 'axios'
 import { getToken, clearAuth } from '../utils/storage'
 
+let apiBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Automatically append /api if the user forgot it in their environment variable
+if (!apiBaseURL.endsWith('/api')) {
+  apiBaseURL = apiBaseURL.replace(/\/$/, '') + '/api';
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: apiBaseURL,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 // Request interceptor: attach token
