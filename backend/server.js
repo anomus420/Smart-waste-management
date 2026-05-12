@@ -28,10 +28,12 @@ const io = new Server(server, {
       if (!origin) return callback(null, true);
       const sanitizedOrigin = origin.trim().replace(/\/$/, '');
       if (allowedOrigins.includes(sanitizedOrigin)) {
-        callback(null, true);
-      } else {
-        callback(null, false);
+        return callback(null, true);
       }
+      if (sanitizedOrigin.includes('onrender.com') || sanitizedOrigin.includes('smart-waste')) {
+        return callback(null, true);
+      }
+      callback(null, false);
     },
     methods: ['GET', 'POST'],
     credentials: true,

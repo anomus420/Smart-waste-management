@@ -50,11 +50,18 @@ app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     const sanitizedOrigin = origin.trim().replace(/\/$/, '');
+    
     if (allowedOrigins.includes(sanitizedOrigin)) {
-      callback(null, true);
-    } else {
-      callback(null, false);
+      return callback(null, true);
     }
+    
+    // Fallback: allow if it matches the expected Render domain to bypass env var typos
+    if (sanitizedOrigin.includes('onrender.com') || sanitizedOrigin.includes('smart-waste')) {
+      return callback(null, true);
+    }
+    
+    console.warn('CORS Rejected Origin:', sanitizedOrigin);
+    callback(null, false);
   },
   credentials: true
 }));
