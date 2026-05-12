@@ -28,7 +28,7 @@ cd frontend && cp .env.example .env
 npm install && npm run dev
 ```
 
-Visit: http://localhost:5173
+Visit:
 
 ## Features
 
