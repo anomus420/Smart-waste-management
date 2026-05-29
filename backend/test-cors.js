@@ -19,4 +19,4 @@ request(app)
   .set('Origin', 'http://example.com')
   .end((err, res) => {
     console.log('Status for rejected origin OPTIONS:', res.status);
-  });
+  }); 

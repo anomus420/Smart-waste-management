@@ -12,7 +12,10 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      // If GOOGLE_CALLBACK_URL is missing, default to a relative path which passport will resolve.
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
+      // Required for Render/Heroku deployments so passport resolves relative URLs to HTTPS
+      proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

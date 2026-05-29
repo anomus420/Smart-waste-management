@@ -47,5 +47,5 @@ const logger = createLogger({
     new transports.File({ filename: path.join(__dirname, '../../logs/exceptions.log') }),
   ],
 });
- 
-module.exports = logger;
+
+module.exports = logger; 

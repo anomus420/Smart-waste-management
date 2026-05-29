@@ -8,7 +8,7 @@
  *   CLOUDINARY_API_SECRET=your_api_secret
  */
  
-/*
+
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
  
@@ -28,6 +28,5 @@ const storage = new CloudinaryStorage({
 });
  
 module.exports = { cloudinary, storage };
-*/
  
-module.exports = {}; // placeholder until Cloudinary is enabled
+// module.exports = {}; // placeholder until Cloudinary is enabled
