@@ -4,6 +4,8 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import GoogleAuthSuccess from './pages/GoogleAuthSuccess'
 import FileComplaint from './pages/FileComplaint'
 import TrackComplaint from './pages/TrackComplaint'
@@ -20,6 +22,8 @@ const AppRoutes = () => (
     <Route path="/" element={<Home />} />
     <Route path="/login" element={<Login />} />
     <Route path="/signup" element={<Signup />} />
+    <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/reset-password/:token" element={<ResetPassword />} />
     <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
     <Route path="/file-complaint" element={<ProtectedRoute><FileComplaint /></ProtectedRoute>} />
     <Route path="/track-complaint" element={<ProtectedRoute><TrackComplaint /></ProtectedRoute>} />

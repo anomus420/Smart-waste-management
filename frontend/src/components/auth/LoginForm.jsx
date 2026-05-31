@@ -56,7 +56,10 @@ const LoginForm = ({ isAdmin = false }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+        <div className="flex justify-between items-center mb-1.5">
+          <label className="block text-sm font-medium text-gray-700">Password</label>
+          <Link to="/forgot-password" className="text-xs text-green-600 hover:text-green-700 font-medium">Forgot Password?</Link>
+        </div>
         <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
           className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all ${errors.password ? 'border-red-400 bg-red-50' : 'border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-100'}`}
           placeholder="••••••••" />

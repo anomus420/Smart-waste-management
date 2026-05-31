@@ -102,4 +102,24 @@ const sendPickupConfirmationEmail = (user, pickup) =>
       </div>`,
   });
  
-module.exports = { sendEmail, sendWelcomeEmail, sendComplaintStatusEmail, sendPickupConfirmationEmail };
+/**
+ * Password reset email.
+ */
+const sendPasswordResetEmail = (user, resetUrl) =>
+  sendEmail({
+    to: user.email,
+    subject: 'Password Reset Request 🔒',
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+        <h2 style="color:#16a34a">Reset Your Password</h2>
+        <p>Hi ${user.name},</p>
+        <p>You requested a password reset. Please click the button below to set a new password. This link is valid for 10 minutes.</p>
+        <a href="${resetUrl}" 
+           style="background:#16a34a;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:12px;margin-bottom:12px">
+          Reset Password
+        </a>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+      </div>`,
+  });
+ 
+module.exports = { sendEmail, sendWelcomeEmail, sendComplaintStatusEmail, sendPickupConfirmationEmail, sendPasswordResetEmail };

@@ -11,6 +11,8 @@ const {
   getMe,
   googleCallback,
   changePassword,
+  forgotPassword,
+  resetPassword,
 } = require('../controllers/authController');
  
 const { protect } = require('../middlewares/auth.middleware');
@@ -23,6 +25,8 @@ router.post('/signup', authLimiter, signupValidator, validate, signup);
 router.post('/login',  authLimiter, loginValidator,  validate, login);
 router.get('/me',      protect, getMe);
 router.put('/change-password', protect, changePassword);
+router.post('/forgot-password', forgotPassword);
+router.put('/reset-password/:token', resetPassword);
  
 // ─── Google OAuth ──────────────────────────────────────────────────────────────
 // Step 1: Redirect user to Google consent screen

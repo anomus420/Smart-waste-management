@@ -6,8 +6,9 @@
 const User        = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const { sendSuccess, sendError } = require('../utils/helpers');
-const { sendWelcomeEmail } = require('../services/emailService');
+const { sendWelcomeEmail, sendPasswordResetEmail } = require('../services/emailService');
 const logger      = require('../utils/logger');
+const crypto      = require('crypto');
  
 // ─── Build token + user payload ────────────────────────────────────────────────
 const buildAuthResponse = (user) => ({
@@ -134,4 +135,74 @@ const changePassword = async (req, res, next) => {
   }
 };
  
-module.exports = { signup, login, getMe, googleCallback, changePassword };
+// ─── POST /api/auth/forgot-password ───────────────────────────────────────────
+const forgotPassword = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return sendError(res, 'There is no user with that email.', 404);
+    }
+    if (user.googleId && !user.password) {
+      return sendError(res, 'This account uses Google Sign-In. Password reset is not applicable.', 400);
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Create reset url
+    const frontendUrl = process.env.NODE_ENV === 'production' 
+      ? process.env.FRONTEND_PROD_URL 
+      : process.env.FRONTEND_URL || 'http://localhost:5173';
+    
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    // Log to console for development testing if SMTP fails
+    logger.info(`Password reset URL for ${user.email}: ${resetUrl}`);
+
+    try {
+      await sendPasswordResetEmail(user, resetUrl);
+      return sendSuccess(res, {}, 'Email sent successfully.');
+    } catch (err) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+      return sendError(res, 'Email could not be sent. Please try again later.', 500);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── PUT /api/auth/reset-password/:token ──────────────────────────────────────
+const resetPassword = async (req, res, next) => {
+  try {
+    // Get hashed token
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    }).select('+password');
+
+    if (!user) {
+      return sendError(res, 'Invalid or expired token.', 400);
+    }
+
+    // Set new password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    logger.info(`User reset password: ${user.email}`);
+    return sendSuccess(res, buildAuthResponse(user), 'Password reset successfully.');
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { signup, login, getMe, googleCallback, changePassword, forgotPassword, resetPassword };
