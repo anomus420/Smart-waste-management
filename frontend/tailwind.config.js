@@ -1,10 +1,13 @@
 /** @type {import('tailwindcss').Config} */
+import colors from 'tailwindcss/colors';
+
 export default {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
+        gray: colors.neutral,
         green: {
           50: '#f0fdf4',
           100: '#dcfce7',

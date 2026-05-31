@@ -28,7 +28,7 @@ const Footer = () => (
         <div>
           <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Resources</h4>
           <ul className="space-y-2 text-sm">
-            {[['/map', 'Collection Centers'], ['/awareness', 'Awareness Hub'], ['/profile', 'My Profile']].map(([to, label]) => (
+            {[['/map', 'Collection Centers'], ['/awareness', 'Awareness Hub'], ['/profile', 'My Profile'], ['/admin/login', 'Admin Portal']].map(([to, label]) => (
               <li key={to}><Link to={to} className="hover:text-green-400 transition-colors">{label}</Link></li>
             ))}
           </ul>

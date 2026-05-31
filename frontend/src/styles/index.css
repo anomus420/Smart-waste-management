@@ -6,9 +6,14 @@
 @layer base {
   * { box-sizing: border-box; }
   body {
-    @apply text-gray-900 bg-gray-50;
+    @apply text-slate-900 bg-slate-50 dark:text-slate-100 dark:bg-slate-900;
     font-family: 'DM Sans', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Fix for inputs in dark mode losing text visibility */
+  input, textarea, select {
+    @apply dark:text-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400;
   }
 }
 

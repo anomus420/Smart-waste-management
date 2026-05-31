@@ -12,6 +12,7 @@ import MapViewPage from './pages/MapView'
 import AwarenessHub from './pages/AwarenessHub'
 import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminLogin from './pages/AdminLogin'
 import NotFound from './pages/NotFound'
 
 const AppRoutes = () => (
@@ -26,6 +27,7 @@ const AppRoutes = () => (
     <Route path="/map" element={<MapViewPage />} />
     <Route path="/awareness" element={<AwarenessHub />} />
     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+    <Route path="/admin/login" element={<AdminLogin />} />
     <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>

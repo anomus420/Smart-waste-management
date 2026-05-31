@@ -4,7 +4,7 @@ import useAuth from '../../hooks/useAuth'
 import Alert from '../common/Alert'
 import { validateEmail, validatePassword } from '../../utils/validators'
 
-const LoginForm = () => {
+const LoginForm = ({ isAdmin = false }) => {
   const { login } = useAuth()
   const navigate = useNavigate()
 
@@ -68,10 +68,12 @@ const LoginForm = () => {
         {loading ? 'Signing in...' : 'Sign In'}
       </button>
 
-      <p className="text-center text-sm text-gray-500">
-        Don't have an account?{' '}
-        <Link to="/signup" className="text-green-600 hover:text-green-700 font-medium">Sign Up</Link>
-      </p>
+      {!isAdmin && (
+        <p className="text-center text-sm text-gray-500">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-green-600 hover:text-green-700 font-medium">Sign Up</Link>
+        </p>
+      )}
     </form>
   )
 }
