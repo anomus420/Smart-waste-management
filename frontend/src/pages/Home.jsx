@@ -15,7 +15,7 @@ const Home = () => {
       {/* Hero */}
       {/* <section className="bg-linear-to-br from-green-700 via-green-600 to-emerald-500 text-white"> */}
       <section className="bg-linear-to-br from-[#0fa049] via-[#22c55e] to-[#14b87f]">
-        <div className="max-w-7xl mx-auto px-4 py-24 text-center">
+        <div className="max-w-7xl mx-auto px-4 py-31  text-center">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-medium mb-6">
             <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse text-white" />
             Building Cleaner Cities
