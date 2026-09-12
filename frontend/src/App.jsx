@@ -8,6 +8,8 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import AppRoutes from './routes';
 import WasteAssistant from './components/common/WasteAssistant';
+import OfflineBanner from './components/common/OfflineBanner';
+import InstallPwaPrompt from './components/common/InstallPwaPrompt';
 
 function AppContent() {
   const location = useLocation();
@@ -22,11 +24,13 @@ function AppContent() {
           : 'bg-white dark:bg-gray-900 dark:text-gray-100'
       }`}
     >
+      <OfflineBanner />
       <Navbar />
       <main className="flex-1">
         <AppRoutes />
       </main>
       <Footer />
+      <InstallPwaPrompt />
     </div>
   );
 }
