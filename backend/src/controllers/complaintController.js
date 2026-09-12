@@ -50,16 +50,18 @@ const createComplaint = async (req, res, next) => {
     const io = req.app.get('io');
     if (io && complaint.location?.coordinates?.lat && complaint.location?.coordinates?.lng) {
       io.emit('new_complaint', {
-        _id:       complaint._id,
-        title:     complaint.title,
-        category:  complaint.category,
-        status:    complaint.status,
-        priority:  complaint.priority,
-        location:  complaint.location,
+        _id:         complaint._id,
+        title:       complaint.title,
+        description: complaint.description,
+        image:       complaint.image,
+        category:    complaint.category,
+        status:      complaint.status,
+        priority:    complaint.priority,
+        location:    complaint.location,
         isAnonymous: complaint.isAnonymous,
         // Don't expose userId if the complaint was filed anonymously
-        userId:    complaint.isAnonymous ? null : complaint.userId,
-        createdAt: complaint.createdAt,
+        userId:      complaint.isAnonymous ? null : complaint.userId,
+        createdAt:   complaint.createdAt,
       });
     }
     // ── End socket emit ───────────────────────────────────────────────────────
@@ -194,8 +196,8 @@ const getNearbyComplaints = async (req, res, next) => {
       'location.coordinates.lng': { $gte: parseFloat(lng) - lngRange, $lte: parseFloat(lng) + lngRange },
       status: { $ne: 'resolved' },
     })
-      .select('title status location category createdAt')
-      .limit(50)
+      .select('title description image priority status location category isAnonymous createdAt')
+      .limit(100)
       .lean();
 
     return sendSuccess(res, { complaints, count: complaints.length });

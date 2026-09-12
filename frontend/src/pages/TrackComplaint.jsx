@@ -6,6 +6,7 @@ import { complaintService } from '../services/complaintService'
 import { formatDate, formatStatus, getStatusColor, getPriorityColor, getImageUrl } from '../utils/formatters'
 import Loader from '../components/common/Loader'
 import useAutoRefresh from '../hooks/useAutoRefresh'
+import LocationPickerModal from '../components/common/LocationPickerModal'
 
 const TrackComplaint = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -17,6 +18,7 @@ const TrackComplaint = () => {
   const [updateFile, setUpdateFile] = useState(null)
   const [updateLoading, setUpdateLoading] = useState(false)
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' })
+  const [showMapModal, setShowMapModal] = useState(false)
   const selectedId = searchParams.get('id')
 
   const fetchDetail = async () => {
@@ -92,7 +94,7 @@ const TrackComplaint = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3">
-            <ComplaintList onSelect={handleSelect} />
+            <ComplaintList onSelect={handleSelect} selectedId={selectedId} />
           </div>
 
           <div className="lg:col-span-2">
@@ -100,8 +102,33 @@ const TrackComplaint = () => {
               <div className="flex justify-center py-12"><Loader /></div>
             ) : detail ? (
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-5 sticky top-20 transition-colors duration-200">
-                {getImageUrl(detail.image) && (
-                  <img src={getImageUrl(detail.image)} alt={detail.title} className="w-full h-40 object-cover rounded-xl" />
+                {getImageUrl(detail.image) ? (
+                  <div className="relative h-48 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+                    <img
+                      src={getImageUrl(detail.image)}
+                      alt={detail.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                    <div className="hidden w-full h-full flex-col items-center justify-center p-4 text-center bg-slate-100 dark:bg-slate-800 text-slate-400">
+                      <span className="text-2xl mb-1">📷</span>
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">No complaint image available</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-44 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 rounded-xl flex flex-col items-center justify-center p-4 text-center border border-slate-200 dark:border-slate-700">
+                    <div className="w-12 h-12 rounded-2xl bg-white/80 dark:bg-slate-800/80 shadow-sm border border-slate-200/60 dark:border-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">No complaint image uploaded</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Report verified by registered location</span>
+                  </div>
                 )}
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-2">
@@ -147,13 +174,22 @@ const TrackComplaint = () => {
                           <div>
                             <div className="flex justify-between items-center mb-1">
                               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Location Coordinates</label>
-                              <button 
-                                type="button" 
-                                onClick={handleAutoFetch}
-                                className="text-xs text-green-600 dark:text-green-400 hover:underline flex items-center gap-1"
-                              >
-                                <span>📍</span> Auto-fetch
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  type="button" 
+                                  onClick={() => setShowMapModal(true)}
+                                  className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                                >
+                                  <span>🗺️</span> Pick on Map
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={handleAutoFetch}
+                                  className="text-xs text-green-600 dark:text-green-400 hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                  <span>📍</span> Auto-fetch
+                                </button>
+                              </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <input 
@@ -209,6 +245,18 @@ const TrackComplaint = () => {
           </div>
         </div>
       </div>
+
+      {/* Location Picker Modal */}
+      <LocationPickerModal
+        isOpen={showMapModal}
+        onClose={() => setShowMapModal(false)}
+        onConfirm={({ lat, lng }) => {
+          setUpdateForm(prev => ({ ...prev, lat, lng }))
+        }}
+        initialLat={updateForm.lat || detail?.location?.coordinates?.lat}
+        initialLng={updateForm.lng || detail?.location?.coordinates?.lng}
+        initialAddress={detail?.location?.address}
+      />
     </div>
   )
 }

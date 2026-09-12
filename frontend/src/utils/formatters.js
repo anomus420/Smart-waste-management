@@ -61,13 +61,16 @@ export const getPriorityColor = (priority) => {
 }
 
 export const getImageUrl = (imagePath) => {
-  if (!imagePath) return null
-  if (imagePath.startsWith('http')) return imagePath
+  if (!imagePath || typeof imagePath !== 'string') return null
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath
+  
+  // Normalize Windows backslashes
+  const normalized = imagePath.replace(/\\/g, '/')
   
   // Get base URL from environment or fallback to localhost
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-  // Strip '/api' from the end if it exists to get the root backend URL
   const baseUrl = apiUrl.replace(/\/api\/?$/, '')
+  const cleanPath = normalized.replace(/^\/?(uploads\/)?/, '')
   
-  return `${baseUrl}/uploads/${imagePath}`
+  return `${baseUrl}/uploads/${cleanPath}`
 }

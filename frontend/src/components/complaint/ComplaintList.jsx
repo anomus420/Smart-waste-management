@@ -4,7 +4,7 @@ import Loader from '../common/Loader'
 import { COMPLAINT_STATUSES, COMPLAINT_CATEGORIES } from '../../utils/constants'
 import { complaintService } from '../../services/complaintService'
 
-const ComplaintList = ({ onSelect }) => {
+const ComplaintList = ({ onSelect, selectedId }) => {
   const [complaints, setComplaints] = useState([])
   const [pagination, setPagination] = useState({})
   const [loading, setLoading] = useState(true)
@@ -54,11 +54,14 @@ const ComplaintList = ({ onSelect }) => {
           <p className="font-medium text-gray-900 dark:text-gray-300">No complaints found</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {complaints.map(c => (
-            <div key={c._id} onClick={() => onSelect?.(c)}>
-              <ComplaintCard complaint={c} />
-            </div>
+            <ComplaintCard
+              key={c._id}
+              complaint={c}
+              isSelected={selectedId === c._id}
+              onSelect={onSelect}
+            />
           ))}
         </div>
       )}

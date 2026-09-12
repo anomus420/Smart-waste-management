@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useSocket } from '../hooks/useSocket';
@@ -14,7 +15,7 @@ const makeIcon = (color, pulse = false) =>
   L.divIcon({
     className: '',
     html: `
-      <div style="position:relative;width:28px;height:28px">
+      <div style="position:relative;width:28px;height:28px;cursor:pointer;">
         ${pulse ? `<div style="
           position:absolute;inset:0;border-radius:50%;
           background:${color};opacity:0.3;
@@ -41,6 +42,45 @@ const CATEGORY_COLORS = {
   other:            '#6b7280',
 };
 
+const CATEGORY_ICONS = {
+  garbage_overflow: '🗑️',
+  illegal_dumping:  '⚠️',
+  littering:        '🚯',
+  hazardous_waste:  '☣️',
+  drainage_blockage:'💧',
+  other:            '📦',
+};
+
+const STATUS_CONFIG = {
+  pending: {
+    label: 'Pending',
+    badge: 'bg-amber-400 text-amber-950 font-bold border-amber-300 shadow-sm',
+    dot: 'bg-amber-900 animate-pulse',
+  },
+  in_progress: {
+    label: 'In Progress',
+    badge: 'bg-sky-500 text-white font-semibold border-sky-400 shadow-sm',
+    dot: 'bg-white animate-pulse',
+  },
+  resolved: {
+    label: 'Resolved',
+    badge: 'bg-emerald-600 text-white font-semibold border-emerald-500 shadow-sm',
+    dot: 'bg-white',
+  },
+  rejected: {
+    label: 'Rejected',
+    badge: 'bg-rose-600 text-white font-semibold border-rose-500 shadow-sm',
+    dot: 'bg-white',
+  },
+};
+
+const PRIORITY_CONFIG = {
+  urgent: 'bg-rose-600 text-white font-bold',
+  high: 'bg-orange-500 text-white font-semibold',
+  medium: 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700',
+  low: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700',
+};
+
 const getCategoryColor = (category) => CATEGORY_COLORS[category] || '#6b7280';
 
 // Ping animation — inject once
@@ -60,8 +100,196 @@ const FlyToLocation = ({ coords }) => {
   return null;
 };
 
+// ── Sub-component: ComplaintMarker with smooth hover & dismiss behavior ───────
+const ComplaintMarker = ({ c, isLive, navigate }) => {
+  const markerRef = useRef(null);
+  const timerRef = useRef(null);
+  const isPinnedRef = useRef(false);
+
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => clearTimer();
+  }, []);
+
+  const handleMouseOver = () => {
+    clearTimer();
+    if (markerRef.current) {
+      markerRef.current.openPopup();
+    }
+  };
+
+  const handleMouseOut = () => {
+    if (isPinnedRef.current) return;
+    clearTimer();
+    timerRef.current = setTimeout(() => {
+      if (markerRef.current) {
+        markerRef.current.closePopup();
+      }
+    }, 250);
+  };
+
+  const handleClick = () => {
+    isPinnedRef.current = true;
+    clearTimer();
+    if (markerRef.current) {
+      markerRef.current.openPopup();
+    }
+  };
+
+  const color = getCategoryColor(c.category);
+  const icon = makeIcon(color, !!isLive);
+  const lat = c.location?.coordinates?.lat;
+  const lng = c.location?.coordinates?.lng;
+  if (!lat || !lng) return null;
+
+  const imgUrl = getImageUrl(c.image);
+  const statusInfo = STATUS_CONFIG[c.status] || STATUS_CONFIG.pending;
+  const priorityClass = PRIORITY_CONFIG[c.priority] || PRIORITY_CONFIG.medium;
+  const categoryIcon = CATEGORY_ICONS[c.category] || '📦';
+  const refId = c._id ? `#${c._id.slice(-5).toUpperCase()}` : '#CMP';
+
+  return (
+    <Marker
+      ref={markerRef}
+      position={[lat, lng]}
+      icon={icon}
+      eventHandlers={{
+        mouseover: handleMouseOver,
+        mouseout: handleMouseOut,
+        click: handleClick,
+      }}
+    >
+      <Popup
+        className="custom-leaflet-popup"
+        minWidth={290}
+        maxWidth={290}
+        eventHandlers={{
+          remove: () => {
+            isPinnedRef.current = false;
+            clearTimer();
+          },
+        }}
+      >
+        <div
+          className="w-[290px] overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl"
+          onMouseEnter={clearTimer}
+          onMouseLeave={handleMouseOut}
+        >
+          {/* Fixed-height Header Image or Placeholder Banner */}
+          <div className="relative h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 overflow-hidden select-none">
+            {imgUrl ? (
+              <img
+                src={imgUrl}
+                alt={c.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+
+            {/* Placeholder fallback when photo is absent or fails */}
+            <div
+              className={`w-full h-full flex flex-col items-center justify-center p-3 text-center ${
+                imgUrl ? 'hidden' : 'flex'
+              }`}
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 mb-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                No photo attached
+              </span>
+            </div>
+
+            {/* Top Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/35 pointer-events-none" />
+
+            {/* Top Floating Badges */}
+            <div className="absolute top-2.5 left-2.5 right-9 flex items-center justify-between gap-1 pointer-events-none">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border ${statusInfo.badge}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`} />
+                <span>{statusInfo.label}</span>
+              </span>
+
+              <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold shadow-sm ${priorityClass}`}>
+                {c.priority || 'medium'}
+              </span>
+            </div>
+
+            {/* Bottom Overlay (ID) */}
+            <div className="absolute bottom-2 left-2.5 pointer-events-none">
+              <span className="px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] font-mono text-white border border-white/10">
+                {refId}
+              </span>
+            </div>
+          </div>
+
+          {/* Card Content Area */}
+          <div className="p-3">
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                <span>{categoryIcon}</span>
+                <span>{formatCategory(c.category)}</span>
+              </span>
+
+              <span className="text-[10px] text-slate-400 whitespace-nowrap font-medium">
+                {formatRelativeTime(c.createdAt)}
+              </span>
+            </div>
+
+            <h4 className="font-bold text-slate-900 dark:text-white text-xs leading-snug line-clamp-1">
+              {c.title}
+            </h4>
+
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 mt-1 leading-relaxed">
+              {c.description || 'Civic waste complaint reported at this location.'}
+            </p>
+
+            {c.location?.address && (
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 flex items-start gap-1">
+                <span className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">📍</span>
+                <span className="line-clamp-1">{c.location.address}</span>
+              </p>
+            )}
+
+            {/* Live update badge */}
+            {isLive && (
+              <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+                <span>Live update just filed</span>
+              </div>
+            )}
+
+            {/* Track button */}
+            <button
+              type="button"
+              onClick={() => navigate(`/track-complaint?id=${c._id}`)}
+              className="mt-2.5 w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm cursor-pointer"
+            >
+              <span>Track Complaint Details</span>
+              <span>&rarr;</span>
+            </button>
+          </div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+};
+
 // ── Main component ───────────────────────────────────────────────────────────
 export default function MapView() {
+  const navigate = useNavigate();
   const socket = useSocket();
   const toast = useToast();
 
@@ -252,37 +480,13 @@ export default function MapView() {
             {/* Complaint markers (nearby + live) */}
             {allComplaints.map((c) => {
               const isLive = liveComplaints.find((lc) => lc._id === c._id);
-              const color = getCategoryColor(c.category);
-              const icon  = makeIcon(color, !!isLive); // pulse only for live ones
-              const lat   = c.location?.coordinates?.lat;
-              const lng   = c.location?.coordinates?.lng;
-              if (!lat || !lng) return null;
               return (
-                <Marker key={c._id} position={[lat, lng]} icon={icon}>
-                  <Popup className="dark:bg-gray-800 dark:text-gray-100 [&_.leaflet-popup-content-wrapper]:dark:bg-gray-800 [&_.leaflet-popup-content-wrapper]:dark:text-gray-100 [&_.leaflet-popup-tip]:dark:bg-gray-800">
-                    <div className="min-w-[200px]">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate max-w-[140px]">
-                          {c.title}
-                        </p>
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${getStatusColor(c.status)}`}>
-                          {c.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{formatCategory(c.category)}</p>
-                      {c.location?.address && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate">{c.location.address}</p>
-                      )}
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatRelativeTime(c.createdAt)}</p>
-                      {isLive && (
-                        <span className="inline-flex items-center gap-1 mt-1.5 text-xs text-green-700 dark:text-green-400 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse" />
-                          Just filed
-                        </span>
-                      )}
-                    </div>
-                  </Popup>
-                </Marker>
+                <ComplaintMarker
+                  key={c._id}
+                  c={c}
+                  isLive={!!isLive}
+                  navigate={navigate}
+                />
               );
             })}
           </MapContainer>
