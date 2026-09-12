@@ -26,7 +26,7 @@ const createComplaint = async (req, res, next) => {
       aiSuggestion = await getComplaintSuggestion(title, description);
     } catch (_) {}
 
-    const complaint = await Complaint.create({
+    const complaint = await Complaint.create({    //db entry of new complaint 
       title,
       description,
       image: imagePath,

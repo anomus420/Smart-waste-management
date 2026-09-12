@@ -210,7 +210,7 @@ export default function MapView() {
         {/* Map */}
         <div className="flex-1">
           <MapContainer
-            center={[20.5937, 78.9629]}  // center of India — change to your city
+            center={[20.5937, 78.9629]}  // center of India — change to any city
             zoom={5}
             style={{ height: '100%', width: '100%' }}
             zoomControl={true}

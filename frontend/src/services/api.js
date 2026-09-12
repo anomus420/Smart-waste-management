@@ -24,7 +24,7 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 )
-
+//axios internally calls the backend via http methods to call backend after this  
 // Response interceptor: handle 401
 api.interceptors.response.use(
   (response) => response,

@@ -18,7 +18,7 @@ function AppContent() {
     <div
       className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
         isHomePage
-          ? 'bg-linear-to-br from-[#0fa049] via-[#22c55e] to-[#14b87f]'
+          ? 'bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-slate-900 dark:from-[#030712] dark:to-[#030712] dark:text-slate-100'
           : 'bg-white dark:bg-gray-900 dark:text-gray-100'
       }`}
     >

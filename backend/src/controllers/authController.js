@@ -96,16 +96,30 @@ const getMe = async (req, res, next) => {
 const googleCallback = async (req, res) => {
   try {
     const { token, user } = buildAuthResponse(req.user);
- 
-    const frontendUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.FRONTEND_PROD_URL 
-      : process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    // Determine target frontend URL:
+    // 1. From OAuth state param (origin passed from frontend when clicking login)
+    let frontendUrl = req.query.state;
+    if (frontendUrl) {
+      try {
+        frontendUrl = new URL(frontendUrl).origin;
+      } catch {
+        frontendUrl = null;
+      }
+    }
+
+    // 2. Fallback to FRONTEND_URL or FRONTEND_PROD_URL
+    if (!frontendUrl) {
+      frontendUrl = process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_PROD_URL 
+        : (process.env.FRONTEND_URL || 'http://localhost:5175');
+    }
 
     // Redirect to frontend with token in query (frontend stores it)
     const redirectUrl = `${frontendUrl}/auth/google/success?token=${token}&userId=${user._id}`;
     res.redirect(redirectUrl);
   } catch (error) {
-    const frontendUrl = process.env.NODE_ENV === 'production' ? process.env.FRONTEND_PROD_URL : process.env.FRONTEND_URL;
+    let frontendUrl = req.query?.state || (process.env.NODE_ENV === 'production' ? process.env.FRONTEND_PROD_URL : (process.env.FRONTEND_URL || 'http://localhost:5175'));
     res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
 };

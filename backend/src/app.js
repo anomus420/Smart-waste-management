@@ -42,25 +42,26 @@ app.use(helmet({
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5000',
+  'http://localhost:5175',
   process.env.FRONTEND_URL,
   process.env.FRONTEND_PROD_URL
 ].filter(Boolean).map(url => url.trim().replace(/\/$/, ''));
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  const sanitized = origin.trim().replace(/\/$/, '');
+  if (allowedOrigins.includes(sanitized)) return true;
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(sanitized)) return true;
+  if (sanitized.includes('onrender.com') || sanitized.includes('smart-waste')) return true;
+  return false;
+};
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    const sanitizedOrigin = origin.trim().replace(/\/$/, '');
-    
-    if (allowedOrigins.includes(sanitizedOrigin)) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
-    
-    // Fallback: allow if it matches the expected Render domain to bypass env var typos
-    if (sanitizedOrigin.includes('onrender.com') || sanitizedOrigin.includes('smart-waste')) {
-      return callback(null, true);
-    }
-    
-    console.warn('CORS Rejected Origin:', sanitizedOrigin);
+    console.warn('CORS Rejected Origin:', origin);
     callback(null, false);
   },
   credentials: true

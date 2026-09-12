@@ -42,8 +42,25 @@ const logger = createLogger({
       maxFiles: 5,
     }),
   ],
-  // Don't crash on uncaught exceptions
+  // Don't crash on uncaught exceptions & rejections silently
   exceptionHandlers: [
+    new transports.Console({
+      format: combine(
+        colorize(),
+        timestamp({ format: 'HH:mm:ss' }),
+        logFormat
+      ),
+    }),
+    new transports.File({ filename: path.join(__dirname, '../../logs/exceptions.log') }),
+  ],
+  rejectionHandlers: [
+    new transports.Console({
+      format: combine(
+        colorize(),
+        timestamp({ format: 'HH:mm:ss' }),
+        logFormat
+      ),
+    }),
     new transports.File({ filename: path.join(__dirname, '../../logs/exceptions.log') }),
   ],
 });

@@ -22,6 +22,7 @@ export const authService = {
   },
 
   googleLogin: () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/google`
+    const origin = window.location.origin;
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/google?returnTo=${encodeURIComponent(origin)}`;
   },
 }
